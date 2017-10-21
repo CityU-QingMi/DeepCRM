@@ -1,0 +1,47 @@
+	@Test
+	public void mixedShutdown() throws Exception {
+		CopyOnWriteArrayList<Lifecycle> stoppedBeans = new CopyOnWriteArrayList<>();
+		Lifecycle bean1 = TestLifecycleBean.forShutdownTests(stoppedBeans);
+		Lifecycle bean2 = TestSmartLifecycleBean.forShutdownTests(500, 200, stoppedBeans);
+		Lifecycle bean3 = TestSmartLifecycleBean.forShutdownTests(Integer.MAX_VALUE, 100, stoppedBeans);
+		Lifecycle bean4 = TestLifecycleBean.forShutdownTests(stoppedBeans);
+		Lifecycle bean5 = TestSmartLifecycleBean.forShutdownTests(1, 200, stoppedBeans);
+		Lifecycle bean6 = TestSmartLifecycleBean.forShutdownTests(-1, 100, stoppedBeans);
+		Lifecycle bean7 = TestSmartLifecycleBean.forShutdownTests(Integer.MIN_VALUE, 300, stoppedBeans);
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.getBeanFactory().registerSingleton("bean1", bean1);
+		context.getBeanFactory().registerSingleton("bean2", bean2);
+		context.getBeanFactory().registerSingleton("bean3", bean3);
+		context.getBeanFactory().registerSingleton("bean4", bean4);
+		context.getBeanFactory().registerSingleton("bean5", bean5);
+		context.getBeanFactory().registerSingleton("bean6", bean6);
+		context.getBeanFactory().registerSingleton("bean7", bean7);
+		context.refresh();
+		assertTrue(bean2.isRunning());
+		assertTrue(bean3.isRunning());
+		assertTrue(bean5.isRunning());
+		assertTrue(bean6.isRunning());
+		assertTrue(bean7.isRunning());
+		assertFalse(bean1.isRunning());
+		assertFalse(bean4.isRunning());
+		bean1.start();
+		bean4.start();
+		assertTrue(bean1.isRunning());
+		assertTrue(bean4.isRunning());
+		context.stop();
+		assertFalse(bean1.isRunning());
+		assertFalse(bean2.isRunning());
+		assertFalse(bean3.isRunning());
+		assertFalse(bean4.isRunning());
+		assertFalse(bean5.isRunning());
+		assertFalse(bean6.isRunning());
+		assertFalse(bean7.isRunning());
+		assertEquals(7, stoppedBeans.size());
+		assertEquals(Integer.MAX_VALUE, getPhase(stoppedBeans.get(0)));
+		assertEquals(500, getPhase(stoppedBeans.get(1)));
+		assertEquals(1, getPhase(stoppedBeans.get(2)));
+		assertEquals(0, getPhase(stoppedBeans.get(3)));
+		assertEquals(0, getPhase(stoppedBeans.get(4)));
+		assertEquals(-1, getPhase(stoppedBeans.get(5)));
+		assertEquals(Integer.MIN_VALUE, getPhase(stoppedBeans.get(6)));
+	}

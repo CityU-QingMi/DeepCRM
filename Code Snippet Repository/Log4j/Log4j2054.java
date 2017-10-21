@@ -1,0 +1,32 @@
+    private void validate(final Configuration config) {
+        assertNotNull(config);
+        assertNotNull(config.getName());
+        assertFalse(config.getName().isEmpty());
+        assertNotNull("No configuration created", config);
+        assertEquals("Incorrect State: " + config.getState(), config.getState(), LifeCycle.State.STARTED);
+        final Map<String, Appender> appenders = config.getAppenders();
+        assertNotNull(appenders);
+        assertTrue("Incorrect number of Appenders: " + appenders.size(), appenders.size() == 2);
+        final KafkaAppender kafkaAppender = (KafkaAppender)appenders.get("Kafka");
+        final GelfLayout gelfLayout = (GelfLayout)kafkaAppender.getLayout();
+        final Map<String, LoggerConfig> loggers = config.getLoggers();
+        assertNotNull(loggers);
+        assertTrue("Incorrect number of LoggerConfigs: " + loggers.size(), loggers.size() == 2);
+        final LoggerConfig rootLoggerConfig = loggers.get("");
+        assertEquals(Level.ERROR, rootLoggerConfig.getLevel());
+        assertFalse(rootLoggerConfig.isIncludeLocation());
+        final LoggerConfig loggerConfig = loggers.get("org.apache.logging.log4j");
+        assertEquals(Level.DEBUG, loggerConfig.getLevel());
+        assertTrue(loggerConfig.isIncludeLocation());
+        final Filter filter = config.getFilter();
+        assertNotNull("No Filter", filter);
+        assertTrue("Not a Threshold Filter", filter instanceof ThresholdFilter);
+        final List<CustomLevelConfig> customLevels = config.getCustomLevels();
+        assertNotNull("No CustomLevels", filter);
+        assertEquals(1, customLevels.size());
+        final CustomLevelConfig customLevel = customLevels.get(0);
+        assertEquals("Panic", customLevel.getLevelName());
+        assertEquals(17, customLevel.getIntLevel());
+        final Logger logger = LogManager.getLogger(getClass());
+        logger.info("Welcome to Log4j!");
+    }

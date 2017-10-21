@@ -1,0 +1,40 @@
+	@Override
+	public void logSummary() {
+		LOG.loggingStatistics();
+		LOG.startTime( startTime );
+		LOG.sessionsOpened( sessionOpenCount.get() );
+		LOG.sessionsClosed( sessionCloseCount.get() );
+		LOG.transactions( transactionCount.get() );
+		LOG.successfulTransactions( committedTransactionCount.get() );
+		LOG.optimisticLockFailures( optimisticFailureCount.get() );
+		LOG.flushes( flushCount.get() );
+		LOG.connectionsObtained( connectCount.get() );
+		LOG.statementsPrepared( prepareStatementCount.get() );
+		LOG.statementsClosed( closeStatementCount.get() );
+		LOG.secondLevelCachePuts( secondLevelCachePutCount.get() );
+		LOG.secondLevelCacheHits( secondLevelCacheHitCount.get() );
+		LOG.secondLevelCacheMisses( secondLevelCacheMissCount.get() );
+		LOG.entitiesLoaded( entityLoadCount.get() );
+		LOG.entitiesUpdated( entityUpdateCount.get() );
+		LOG.entitiesInserted( entityInsertCount.get() );
+		LOG.entitiesDeleted( entityDeleteCount.get() );
+		LOG.entitiesFetched( entityFetchCount.get() );
+		LOG.collectionsLoaded( collectionLoadCount.get() );
+		LOG.collectionsUpdated( collectionUpdateCount.get() );
+		LOG.collectionsRemoved( collectionRemoveCount.get() );
+		LOG.collectionsRecreated( collectionRecreateCount.get() );
+		LOG.collectionsFetched( collectionFetchCount.get() );
+		LOG.naturalIdCachePuts( naturalIdCachePutCount.get() );
+		LOG.naturalIdCacheHits( naturalIdCacheHitCount.get() );
+		LOG.naturalIdCacheMisses( naturalIdCacheMissCount.get() );
+		LOG.naturalIdMaxQueryTime( naturalIdQueryExecutionMaxTime.get() );
+		LOG.naturalIdQueriesExecuted( naturalIdQueryExecutionCount.get() );
+		LOG.queriesExecuted( queryExecutionCount.get() );
+		LOG.queryCachePuts( queryCachePutCount.get() );
+		LOG.timestampCachePuts( updateTimestampsCachePutCount.get() );
+		LOG.timestampCacheHits( updateTimestampsCacheHitCount.get() );
+		LOG.timestampCacheMisses( updateTimestampsCacheMissCount.get() );
+		LOG.queryCacheHits( queryCacheHitCount.get() );
+		LOG.queryCacheMisses( queryCacheMissCount.get() );
+		LOG.maxQueryTime( queryExecutionMaxTime.get() );
+	}

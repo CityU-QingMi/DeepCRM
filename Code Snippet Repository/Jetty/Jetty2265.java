@@ -1,0 +1,14 @@
+    public void callPreDestroyCallback (Object o)
+    throws Exception
+    {
+        if (o == null)
+            return;
+        
+        Class<? extends Object> clazz = o.getClass();
+        List<LifeCycleCallback> callbacks = preDestroyCallbacksMap.get(clazz.getName());
+        if (callbacks == null)
+            return;
+        
+        for (int i=0;i<callbacks.size();i++)
+            ((LifeCycleCallback)callbacks.get(i)).callback(o);
+    }

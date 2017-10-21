@@ -1,0 +1,14 @@
+    public void testFirstPeriodImmediatelyPrecedesSecondPeriod() throws SQLException {
+    	String query = "SELECT emp_id FROM PUBLIC.EMP WHERE PERIOD (BUS_START, BUS_END) IMMEDIATELY PRECEDES PERIOD (?, ?);";
+		PreparedStatement stmt = conn.prepareStatement(query);
+    	
+    	executeAndTestQuery(stmt, "TIMESTAMP '2000-04-01 01:02:03'", "TIMESTAMP '2000-05-01 01:02:03'", 3);
+    	
+    	executeAndTestQuery(stmt, "TIMESTAMP '2000-03-31 01:02:03'", "TIMESTAMP '2000-05-01 01:02:03'");
+    	
+    	executeAndTestQuery(stmt, "TIMESTAMP '1999-03-01 01:02:03'", "TIMESTAMP '1999-03-30 01:02:03'");
+    	
+    	executeAndTestQuery(stmt, "TIMESTAMP '2000-02-01 01:02:03'", "TIMESTAMP '2000-05-01 01:02:03'", 1);
+    	
+    	stmt.close();
+    }

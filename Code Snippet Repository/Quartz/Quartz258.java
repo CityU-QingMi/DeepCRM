@@ -1,0 +1,15 @@
+    @Override
+    public boolean isTimeIncluded(long timeStamp) {
+        if (excludeAll == true) {
+            return false;
+        }
+
+        // Test the base calendar first. Only if the base calendar not already
+        // excludes the time/date, continue evaluating this calendar instance.
+        if (super.isTimeIncluded(timeStamp) == false) { return false; }
+
+        java.util.Calendar cl = createJavaCalendar(timeStamp);
+        int day = cl.get(java.util.Calendar.DAY_OF_MONTH);
+
+        return !(isDayExcluded(day));
+    }

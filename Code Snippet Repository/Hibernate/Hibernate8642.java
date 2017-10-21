@@ -1,0 +1,42 @@
+	@Test
+	public void testCircularCascade() throws Exception {
+		Session s = openSession();
+		Transaction tx = s.beginTransaction();
+		Circular c = new Circular();
+		c.setClazz(Circular.class);
+		c.setOther( new Circular() );
+		c.getOther().setOther( new Circular() );
+		c.getOther().getOther().setOther(c);
+		c.setAnyEntity( c.getOther() );
+		String id = (String) s.save(c);
+		tx.commit();
+		s.close();
+		s = openSession();
+		tx = s.beginTransaction();
+		c = (Circular) s.load(Circular.class, id);
+		c.getOther().getOther().setClazz(Foo.class);
+		tx.commit();
+		s.close();
+		c.getOther().setClazz(Qux.class);
+		s = openSession();
+		tx = s.beginTransaction();
+		s.saveOrUpdate(c);
+		tx.commit();
+		s.close();
+		c.getOther().getOther().setClazz(Bar.class);
+		s = openSession();
+		tx = s.beginTransaction();
+		s.saveOrUpdate(c);
+		tx.commit();
+		s.close();
+		s = openSession();
+		tx = s.beginTransaction();
+		c = (Circular) s.load(Circular.class, id);
+		assertTrue( c.getOther().getOther().getClazz()==Bar.class);
+		assertTrue( c.getOther().getClazz()==Qux.class);
+		assertTrue( c.getOther().getOther().getOther()==c);
+		assertTrue( c.getAnyEntity()==c.getOther() );
+		assertEquals( 3, doDelete( s, "from Universe" ) );
+		tx.commit();
+		s.close();
+	}

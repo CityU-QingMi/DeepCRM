@@ -1,0 +1,14 @@
+	@Test
+	public void testLifecycle() {
+		doInJPA( this::entityManagerFactory, entityManager -> {
+			Person person = new Person( 1L );
+			entityManager.persist( person );
+			person.addPhone( new Phone( 1L, "landline", "028-234-9876" ) );
+			person.addPhone( new Phone( 2L, "mobile", "072-122-9876" ) );
+			entityManager.flush();
+			person.removePhone( person.getPhones().get( 0 ) );
+		} );
+		doInJPA( this::entityManagerFactory, entityManager -> {
+			entityManager.find( Person.class, 1L ).getPhones().size();
+		} );
+	}

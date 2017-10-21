@@ -1,0 +1,16 @@
+	@Test
+	public void test_hql_relational_comparisons_example_5() {
+
+		doInJPA( this::entityManagerFactory, entityManager -> {
+			//tag::hql-relational-comparisons-example[]
+
+			// boolean comparison
+			List<Payment> payments = entityManager.createQuery(
+				"select p " +
+				"from Payment p " +
+				"where p.completed = true ", Payment.class )
+			.getResultList();
+			//end::hql-relational-comparisons-example[]
+			assertEquals(2, payments.size());
+		});
+	}

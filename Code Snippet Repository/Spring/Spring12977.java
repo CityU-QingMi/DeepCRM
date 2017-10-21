@@ -1,0 +1,20 @@
+	@Test
+	public void supportsParameter() {
+		assertTrue(resolver.supportsParameter(paramRequestPart));
+		assertTrue(resolver.supportsParameter(paramNamedRequestPart));
+		assertTrue(resolver.supportsParameter(paramValidRequestPart));
+		assertTrue(resolver.supportsParameter(paramMultipartFile));
+		assertTrue(resolver.supportsParameter(paramMultipartFileList));
+		assertTrue(resolver.supportsParameter(paramMultipartFileArray));
+		assertFalse(resolver.supportsParameter(paramInt));
+		assertTrue(resolver.supportsParameter(paramMultipartFileNotAnnot));
+		assertTrue(resolver.supportsParameter(paramPart));
+		assertTrue(resolver.supportsParameter(paramPartList));
+		assertTrue(resolver.supportsParameter(paramPartArray));
+		assertFalse(resolver.supportsParameter(paramRequestParamAnnot));
+		assertTrue(resolver.supportsParameter(optionalMultipartFile));
+		assertTrue(resolver.supportsParameter(optionalMultipartFileList));
+		assertTrue(resolver.supportsParameter(optionalPart));
+		assertTrue(resolver.supportsParameter(optionalPartList));
+		assertTrue(resolver.supportsParameter(optionalRequestPart));
+	}

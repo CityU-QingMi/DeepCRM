@@ -1,0 +1,11 @@
+	public boolean equals(Object o) {
+		if ( this == o ) return true;
+		if ( o == null || getClass() != o.getClass() ) return false;
+
+		final PaintingPk that = (PaintingPk) o;
+
+		if ( !name.equals( that.name ) ) return false;
+		if ( !painter.equals( that.painter ) ) return false;
+
+		return true;
+	}
