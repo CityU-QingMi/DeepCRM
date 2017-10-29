@@ -30,8 +30,7 @@ class Evaluation(object):
     output_lines = []
     cmd = './analyzer/pmd-bin-5.8.1/bin/run.sh pmd -d ' + dir_for_marking + ' -R rulesets/java/basic.xml,rulesets/java/design.xml,rulesets/java/braces.xml,rulesets/java/comments.xml,rulesets/java/codesize.xml,rulesets/java/controversial.xml,rulesets/java/naming.xml -f text'
     output_lines.extend(os.popen(cmd).readlines())
-    for line in output_lines[
-                1:]:  # "5","","/Users/robert/Documents/src/python/StylisticFingerprinting/dir_for_marking/java-source_apache-log4j-2.9.1-src_log4j-web_src_test_java_org_apache_logging_log4j_web_WebLookupTest.java_2.java","3","3","publicMethodCommentRequirement Required","Comments","CommentRequired"
+    for line in output_lines[1:]:
       if line.find('Error while parsing') != -1:
         print 'ERROR while runing PMD'
         print line
@@ -49,12 +48,11 @@ class Evaluation(object):
       os.popen('java -jar ./analyzer/checkstyle-8.2-all.jar -c /google_checks.xml ' + dir_for_marking).readlines())
     output_lines.extend(
       os.popen('java -jar ./analyzer/checkstyle-8.2-all.jar -c /sun_checks.xml ' + dir_for_marking).readlines())
-    for line in output_lines:  # [ERROR] /Users/robert/Documents/src/python/StylisticFingerprinting/dir_for_marking/java-source_apache-log4j-2.9.1-src_log4j-web_src_test_java_org_apache_logging_log4j_web_WebLookupTest.java_2.java:0: File does not end with a newline. [NewlineAtEndOfFile]
+    for line in output_lines:
       if line.startswith('['):
         file_path_in_result = line[line.find('] ') + 2:line.find(':')]
         file_path_in_result = marking_file_dict[os.path.basename(file_path_in_result)]
         if not file_result_dict.has_key(file_path_in_result):
-          # file_result_dict[file_path_in_result] = 0
           print 'ERROR------------%s does not have pmd marking' % file_path_in_result
           continue
         file_result_dict[file_path_in_result] = file_result_dict[file_path_in_result] + 1
