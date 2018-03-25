@@ -7,147 +7,40 @@ import errno
 
 
 _input_dir = None
-_stat = None
 _javachar = None
-_xmlword = None
 _xmlelement = None
 _xmlwordascii = None
-_validate = None
 _char_dict = []
-
-_invalidreg = re.compile(r'[^\,\-\d\n]')
-_invalidwordreg = re.compile(r'[^\,\-\d\n]+')
-
-
-def PrintUsage():
-  print('PrintUsage')
-
-def ParseArgs(args):
-  try:
-    (opts, filenames) = getopt.getopt(args, '', ['help',
-                                                 'input_dir=',
-                                                 'stat',
-                                                 'javachar',
-                                                 'xmlword',
-                                                 'xmlwordascii',
-                                                 'xmlelement',
-                                                 'validate'
-                                                 ])
-  except getopt.GetoptError:
-    PrintUsage('Invalid arguments.')
-
-  for (opt, val) in opts:
-    if opt == '--help':
-      PrintUsage(None)
-    elif opt == '--input_dir':
-      global _input_dir
-      _input_dir = val
-    elif opt == '--stat':
-      global _stat
-      _stat = True
-    elif opt == '--xmlword':
-      global _xmlword
-      _xmlword = True
-    elif opt == '--javachar':
-      global _javachar
-      _javachar = True
-    elif opt == '--xmlwordascii':
-      global _xmlwordascii
-      _xmlwordascii = True
-    elif opt == '--xmlelement':
-      global _xmlelement
-      _xmlelement = True
-    elif opt == '--validate':
-      global  _validate
-      _validate = True
-
 
 def WalkFiles(input_dir, file_list):
   print(input_dir)
   for parent,dirnames,filenames in os.walk(input_dir):
-    for dirname in  dirnames:
-      print("the full name of the dir is:" + os.path.join(parent,dirname))
-      #WalkFiles(os.path.join(parent, dirname), file_list)
-      #print("parent is:" + parent)
-      #print("dirname is" + dirname)
-
     for filename in filenames:
-      #print("parent is:" + parent)
-      #print("filename is:" + filename)
-      print("the full name of the file is:" + os.path.join(parent,filename))
       file_list.append(os.path.join(parent,filename))
 
-def StatFilesChars(file_list, output_result_file_path):
+def MakeDirP(path):
+  try:
+    os.makedirs(path)
+  except OSError as exc:  # Python >2.5 (except OSError, exc: for Python <2.5)
+    if exc.errno == errno.EEXIST and os.path.isdir(path):
+      pass
+    else:
+      raise
 
-  result_file_object = None
-  char_dict = {}
-  start_num = 0
-  file_exist = False
+def ReplaceRootDir(file_path, dir_name):
+  ar = file_path.split(os.sep)
+  if ar[0] == '.':
+    ar = ar[1:]
+  ar[0] = dir_name
+  new_file_path = '.'
+  for p in ar:
+    new_file_path = os.path.join(new_file_path, p)
+  if not os.path.exists(os.path.dirname(new_file_path)):
+    MakeDirP(os.path.dirname(new_file_path))
+  return new_file_path
 
-  if os.path.exists(output_result_file_path):
-    CharDictLoadFromFile(output_result_file_path, char_dict)
-    result_file_object = open(output_result_file_path, 'a')
-    file_exist = True
-    start_num = 1000
-    print(output_result_file_path + ' exits')
-  else:
-    start_num = 100
-    file_exist = False
-    result_file_object = open(output_result_file_path, 'w')
-    print(output_result_file_path + ' does not exits')
-
-
-  for i in range(0, 26):
-    s = chr(ord('a')+i)
-    if not s in char_dict:
-      char_dict[s] = start_num
-      result_file_object.write(s + '\t' + str(char_dict[s]) + '\n')
-      start_num = start_num +1
-
-
-  if not file_exist:
-    start_num = 200
-  for i in range(0, 26):
-    s = chr(ord('A')+i)
-    if not s in char_dict:
-      char_dict[s] = start_num
-      result_file_object.write(s + '\t' + str(char_dict[s]) + '\n')
-      start_num = start_num +1
-
-  if not file_exist:
-    start_num = 300
-  for i in range(0, 10):
-    s = str(i)
-    if not s in char_dict:
-      char_dict[s] = start_num
-      result_file_object.write(s + '\t' + str(char_dict[s]) + '\n')
-      start_num = start_num +1
-
-  #for k,v in char_dict.items():
-  #  print(k)
-
-
-  if not file_exist:
-    start_num = 500
-  for file_path in file_list:
-    file_object = open(file_path, 'r')
-    try:
-      text = file_object.read( )
-      l = list(text)
-      for s in l:
-        if not s in char_dict:
-          char_dict[s] = start_num
-          if s == '\n':
-            s = '\\n'
-          if s == '\t':
-            s = '\\t'
-          result_file_object.write(s + '\t' + str(start_num) + '\n')
-          start_num = start_num + 1
-    finally:
-      file_object.close( )
-
-
-  result_file_object.close()
+def ReplaceExt(file_path, ex):
+  return os.path.splitext(file_path)[0] + '.' + ex
 
 
 def CharDictLoadFromFile(char_dict_file_path, output_char_dict):
@@ -215,15 +108,6 @@ def XmlTransfer(file_list, char_dict_file_path, to_ascii):
   max_line_width = 0
   max_line_count = 0
 
-  '''
-  dir_name = "xmlencode_" + os.path.basename(os.path.dirname(file_list[0]))
-  matrix_dir_name_prefix = "output_xmlword" + ("ascii_" if to_ascii else "_")
-  matrix_dir_name = matrix_dir_name_prefix + os.path.basename(os.path.dirname(file_list[0]))
-  if not os.path.exists(dir_name):
-    os.mkdir(dir_name)
-  if not os.path.exists(matrix_dir_name):
-    os.mkdir(matrix_dir_name)
-  '''
   encode_file_list = []
 
   for file_path in file_list:
@@ -277,34 +161,6 @@ def XmlTransfer(file_list, char_dict_file_path, to_ascii):
 
 
 
-    '''
-    #replace function name
-    content = re.sub(r'<name>([^<>]*)</name><parameter_list>', '<name>'+char_dict["FunctionName"]+'</name><parameter_list>', content)
-    #replace type and varible name(varible declaration)
-    content = re.sub(r'<type>(<specifier>[^<>]*</specifier>\s+)*<name>([^d][^<>]*)</name></type>(\s+)<name>([^d][^<>]*)</name>',
-                     lambda m:'<type>'+ m.group(1) if(m.group(1) is not None) else '' +'<name>'+char_dict["TypeName"]+'</name></type>'+m.group(3) +'<name>'+char_dict["VariableName"]+'</name>', content)
-
-    #replace gerenic type
-    content = re.sub(r'<type><name>((?!<type>).)*<argument_list((?!<type>).)*</name></type>(\s+)<name>([^d][^<>]*)</name>',
-                     lambda m:'<type><name>'+char_dict["TypeName"]+'</name></type>'+m.group(3) +'<name>'+char_dict["VariableName"]+'</name>', content)
-
-    #replace member function call
-    content = re.sub(r'<call><name><name>([^<>]*)</name><operator>.</operator><name>([^<>]*)</name></name>',
-                     '<call><name><name>'+char_dict["VariableName"]+'</name><operator>.</operator><name>'+char_dict["FunctionName"]+'</name></name>',
-              content);
-    #replace member variable
-    content = re.sub(r'<expr><name><name>([^<>]*)</name><operator>.</operator><name>([^<>]*)</name></name></expr>',
-                     '<expr><name><name>'+char_dict["VariableName"]+'</name><operator>.</operator><name>'+char_dict["VariableName"]+'</name></name></expr>',
-                     content);
-    # replace global function call (include new xxx())
-    content = re.sub(r'<call><name>([^<>]*)</name>', '<call><name>' + char_dict["FunctionName"] + '</name>', content)
-
-    # replace varible in expr (i = 0)
-    content = re.sub(r'<expr><name>([^<>]*)</name>', '<expr><name>' + char_dict['VariableName'] + '</name>', content)
-    # replace throws type
-    content = re.sub(r'<expr><name>([^<>]*)</name></expr>', '<expr><name>' + char_dict["TypeName"] + '</name></expr>',
-                     content)
-    '''
 
 
 
@@ -329,7 +185,6 @@ def XmlTransfer(file_list, char_dict_file_path, to_ascii):
     content = re.sub(r'\)</condition>', char_dict[')']+ '</condition>', content)
     content = re.sub(r'<elseif>else', '<elseif>'+char_dict['else'], content)
     content = re.sub(r'<annotation>@((?!<annotation>).)*</annotation>', char_dict['Annotation'], content, flags=re.M|re.S)
-    #顺序很重要，先替换泛型类型，避免泛型类型中的原始类型先被替换，再替换所有非空格\t的关键字，这样会先过滤掉所有自定义类型，,再转所有name里的(包括自定义类型），最后把空格\t转掉
 
     if not to_ascii:
       # replace gerenic type
@@ -347,22 +202,12 @@ def XmlTransfer(file_list, char_dict_file_path, to_ascii):
 
     else:
       # replace gerenic type
-      '''
-      gerenic_type_reg = re.compile(r'<type><name>((?!<type>).*<argument_list(?!<type>).*)</name></type>(\s+)<name>([^d][^<>]*)</name>')
-      if gerenic_type_reg.search(content):
-
-        content = gerenic_type_reg.sub(
-         lambda m: '<type><name>' + XmlAscii(m.group(1)) + '</name></type>' + m.group(2) + '<name>' + Ascii(m.group(3)) + '</name>', content)
-      '''
 
       for k,v in char_dict.items():
         content = content.replace(r'>' + k +'<', '>' + v +'<')
 
       #replace idenfifer
       content = re.sub(r'<name>([^<>,]*)</name>', lambda m:'<name>'+Ascii(m.group(1))+'</name>', content)
-
-
-
 
 
 
@@ -379,12 +224,6 @@ def XmlTransfer(file_list, char_dict_file_path, to_ascii):
       content = content.replace(k, char_dict[k])
     for k in [' ', '\t']:
       content = content.replace(k, format_char_dict[k])
-
-    global _invalidwordreg
-    invalidwords = _invalidwordreg.findall(content)
-    if len(invalidwords) > 0:
-      print '>>>>>>>>>>>> some invalid words: '+str(invalidwords) + 'in file ' + file_path
-    content = _invalidwordreg.sub(char_dict['Unknown'], content)
 
     content = content.replace('\n', format_char_dict['\n'] + '\n')
 
@@ -405,10 +244,6 @@ def XmlTransfer(file_list, char_dict_file_path, to_ascii):
 
     encode_file_list.append(output_file_path)
 
-    #output_file_object_mid = open(os.path.join(dir_name , file_name + "_wordmatrix_mid.java"), 'w')
-    #output_file_object_mid.write(midcontent)
-
-    #print output_file_path + '   encoded.'
 
   for file_path in encode_file_list:
 
@@ -428,17 +263,13 @@ def XmlTransfer(file_list, char_dict_file_path, to_ascii):
     for i in range(0, extra_row_count):
       output_content += Extra(max_line_width) + '\n'
 
-    #file_name = os.path.basename(file_path)
-    #output_file_path = os.path.join(matrix_dir_name , file_name + ".matrix")
 
     output_file_path = ReplaceRootDir(file_path, 'Word%s' % ('Char' if to_ascii else ''))
     output_file_path = ReplaceExt(output_file_path, 'matrix')
     output_file_object = open(output_file_path, 'w')
-    #output_file_object = open(output_file_path, 'w')
     output_file_object.write(output_content)
     output_file_object.close()
     print output_file_path +' written.'
-    Validate([output_file_path])
 
 
   print('max line width: %d' % max_line_width)
@@ -454,12 +285,8 @@ def XmlElementTransfer(file_list, char_dict_file_path):
   for k, v in char_dict.items():
     char_dict[k] = char_dict[k] + ','
 
-
-
   max_line_width = 0
   max_line_count = 0
-
-
 
   encode_file_list = []
   for file_path in file_list:
@@ -476,11 +303,8 @@ def XmlElementTransfer(file_list, char_dict_file_path):
     content = re.sub(r'<\?xml([^<>]*)?>\n', '', content)#remove xml head
 
     content = re.sub(r'>([^<>]*)<', lambda m: '>' + re.sub(r'[^\n]', '', m.group(1)) + '<', content)#remove text without removing \n
-    #for k in [',',' ','\t','{','}','(',')','&gt;','&lt;',';','[', ']', '?']:
-    #  content = content.replace(k, '')
 
     for k in char_dict:
-      #content = re.sub(r'<'+k+r'([^<>]*)>([^<>\n]*)<', '<'+k+'><', content)#remove text and attr
       content = re.sub(r'<'+k+r'([^<>]*)>', '<'+k+'>', content)#remove text and attr
 
     open('test.java','w').write(content)
@@ -504,17 +328,12 @@ def XmlElementTransfer(file_list, char_dict_file_path):
       if ItemCount(line)  > max_line_width:
         max_line_width =ItemCount(line)
 
-    #file_name = os.path.basename(file_path)
-    #output_file_path = os.path.join(dir_name , file_name)
     output_file_path = ReplaceRootDir(file_path, 'midoutput_element_encoded')
     output_file_object = open(output_file_path, 'w')
     output_file_object.write(content)
     output_file_object.close()
 
     encode_file_list.append(output_file_path)
-
-    #output_file_object_mid = open(os.path.join(dir_name , file_name + "_wordmatrix_mid.java"), 'w')
-    #output_file_object_mid.write(midcontent)
 
     print file_path + ' encoded.'
 
@@ -543,12 +362,9 @@ def XmlElementTransfer(file_list, char_dict_file_path):
     output_file_object.write(output_content)
     output_file_object.close()
     print output_file_path + ' written.'
-    Validate([output_file_path])
 
   print('max line width: %d' % max_line_width)
   print('max line count: %d' % max_line_count)
-
-
 
 
 
@@ -595,15 +411,6 @@ def ToMatrix(file_list, char_dict_file_path):
     output_file_path = ReplaceRootDir(file_path, 'Character') + '.matrix'
     output_file_object = open(output_file_path, 'w')
 
-    '''
-    if not os.path.exists("output_javachar"):
-      os.mkdir("output_javachar")
-    dir_name = os.path.join("output_javachar" , os.path.basename(os.path.dirname(file_path)))
-    file_name = os.path.basename(file_path)
-    if not os.path.exists(dir_name):
-      os.mkdir(dir_name)
-    output_file_object = open(os.path.join(dir_name ,  file_name + ".matrix" ),'w')
-    '''
     output_matrix = []
     for line in input_file_object:
       output_matrix_row = []
@@ -646,81 +453,47 @@ def ToMatrix(file_list, char_dict_file_path):
     output_file_object.write(output_text)
     output_file_object.close()
     input_file_object.close()
-    #print output_file_path + ' written.'
 
-def MkDirP(path):
+
+def ParseArgs(args):
   try:
-    os.makedirs(path)
-  except OSError as exc:  # Python >2.5 (except OSError, exc: for Python <2.5)
-    if exc.errno == errno.EEXIST and os.path.isdir(path):
-      pass
-    else:
-      raise
+    (opts, filenames) = getopt.getopt(args, '', [
+                                                 'input_dir=',
+                                                 'javachar',
+                                                 'xmlwordascii',
+                                                 'xmlelement'
+                                                 ])
+  except getopt.GetoptError:
+    print('Invalid arguments.')
 
-def ReplaceRootDir(file_path, dir_name):
-  ar = file_path.split(os.sep)
-  if ar[0] == '.':
-    ar = ar[1:]
-  ar[0] = dir_name
-  new_file_path = '.'
-  for p in ar:
-    new_file_path = os.path.join(new_file_path, p)
-  if not os.path.exists(os.path.dirname(new_file_path)):
-    MkDirP(os.path.dirname(new_file_path))
-  return new_file_path
+  for (opt, val) in opts:
+    if opt == '--input_dir':
+      global _input_dir
+      _input_dir = val
+    elif opt == '--javachar':
+      global _javachar
+      _javachar = True
+    elif opt == '--xmlwordascii':
+      global _xmlwordascii
+      _xmlwordascii = True
+    elif opt == '--xmlelement':
+      global _xmlelement
+      _xmlelement = True
 
-def ReplaceExt(file_path, ex):
-  return os.path.splitext(file_path)[0] + '.' + ex
-
-def Stat():
-  global _input_dir
-  rootdir = _input_dir
-  file_list = []
-  WalkFiles(rootdir, file_list)
-  StatFilesChars(file_list, 'char.txt')
-
-def Matrix():
-  global _input_dir
-  rootdir = _input_dir
-  file_list = []
-  WalkFiles(rootdir, file_list)
-  XmlTransfer(file_list, 'word.txt', 'word_matrix.txt')
-
-
-
-def Validate(file_list):
-  for file_path in file_list:
-    if not file_path.endswith('.matrix'):
-      continue;
-    f = open(file_path)
-    content = f.read();
-    global  _invalidwordreg
-    ret = _invalidwordreg.findall(content)
-    if len(ret) > 0:
-      print '>>>>>>>>>>>>>>>>>>>>'+file_path + ' is invalid with ' + str(ret)
-      exit()
 
 if (__name__ == '__main__'):
-  print ('start')
-  ParseArgs(sys.argv[1:])
 
+  print ('start the program')
+  ParseArgs(sys.argv[1:])
 
   rootdir = _input_dir
   file_list = []
   WalkFiles(rootdir, file_list)
 
-  if _stat:
-    Stat()
-  elif _javachar:
+  if _javachar:
     ToMatrix(file_list, 'char.txt')
-  elif _xmlword:
-    XmlTransfer(file_list, 'word.txt', False)
   elif _xmlwordascii:
     XmlTransfer(file_list, 'word.txt',  True)
   elif _xmlelement:
     XmlElementTransfer(file_list, 'element.txt')
-  elif _validate:
-    print "---------VALIDATE-------------"
-    Validate(file_list)
-    #re.sub(r'<([^<>]*)>', '', content)
 
