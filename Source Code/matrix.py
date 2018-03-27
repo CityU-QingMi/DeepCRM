@@ -7,9 +7,9 @@ import errno
 
 
 _input_dir = None
-_javachar = None
-_xmlelement = None
-_xmlwordascii = None
+_character = None
+_node = None
+_token = None
 _char_dict = []
 
 def WalkFiles(input_dir, file_list):
@@ -89,7 +89,7 @@ def XmlAscii(content):
     result += str(ord(c)) + ','
   return result
 
-def XmlTransfer(file_list, char_dict_file_path, to_ascii):
+def TransferTokenLevel(file_list, char_dict_file_path, to_ascii):
   char_dict = {}
   CharDictLoadFromFile(char_dict_file_path, char_dict)
 
@@ -276,7 +276,7 @@ def XmlTransfer(file_list, char_dict_file_path, to_ascii):
   print('max line count: %d' % max_line_count)
 
 
-def XmlElementTransfer(file_list, char_dict_file_path):
+def TransferNodeLevel(file_list, char_dict_file_path):
 
   char_dict = {}
   CharDictLoadFromFile(char_dict_file_path, char_dict)
@@ -368,7 +368,7 @@ def XmlElementTransfer(file_list, char_dict_file_path):
 
 
 
-def ToMatrix(file_list, char_dict_file_path):
+def TransferCharacterLevel(file_list, char_dict_file_path):
 
   print('ToMaritx %d files' % len(file_list))
   char_dict = {}
@@ -459,9 +459,9 @@ def ParseArgs(args):
   try:
     (opts, filenames) = getopt.getopt(args, '', [
                                                  'input_dir=',
-                                                 'javachar',
-                                                 'xmlwordascii',
-                                                 'xmlelement'
+                                                 'character',
+                                                 'token',
+                                                 'node'
                                                  ])
   except getopt.GetoptError:
     print('Invalid arguments.')
@@ -470,15 +470,15 @@ def ParseArgs(args):
     if opt == '--input_dir':
       global _input_dir
       _input_dir = val
-    elif opt == '--javachar':
-      global _javachar
-      _javachar = True
-    elif opt == '--xmlwordascii':
-      global _xmlwordascii
-      _xmlwordascii = True
-    elif opt == '--xmlelement':
-      global _xmlelement
-      _xmlelement = True
+    elif opt == '--character':
+      global _character
+      _character = True
+    elif opt == '--token':
+      global _token
+      _token = True
+    elif opt == '--node':
+      global _node
+      _node = True
 
 
 if (__name__ == '__main__'):
@@ -490,10 +490,10 @@ if (__name__ == '__main__'):
   file_list = []
   WalkFiles(rootdir, file_list)
 
-  if _javachar:
-    ToMatrix(file_list, 'char.txt')
-  elif _xmlwordascii:
-    XmlTransfer(file_list, 'word.txt',  True)
-  elif _xmlelement:
-    XmlElementTransfer(file_list, 'element.txt')
+  if _character:
+    TransferCharacterLevel(file_list, 'char.txt')
+  elif _token:
+    TransferTokenLevel(file_list, 'word.txt',  True)
+  elif _node:
+    TransferNodeLevel(file_list, 'element.txt')
 
