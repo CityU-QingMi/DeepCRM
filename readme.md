@@ -1,6 +1,6 @@
 # Code Snippet Repository
 
-New datasets retrieved from open source Java projects.
+New datasets retrieved from open source Java projects: Hibernate, HyperSQL, Jetty, JUnit, Log4j, Maven, Quartz, Roller, Spring, and Struts.
 
 # Source Code
 
